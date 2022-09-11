@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommonModule } from './common/common.module';
 import { NoteModule } from './note/note.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { NoteModule } from './note/note.module';
       synchronize: true, //process.env.ENV === 'development' ? true : false,
     }),
     NoteModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],

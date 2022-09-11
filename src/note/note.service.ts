@@ -4,10 +4,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class NoteService {
@@ -26,11 +27,21 @@ export class NoteService {
     }
   }
 
-  async findAll() {
-    const notes = await this.noteRepository.find({
-      select: ['id', 'title', 'content'],
-    });
-    return notes;
+  async findAll(PaginationDto: PaginationDto) {
+    const { itemPerPage, currentPage, keyword } = PaginationDto;
+    console.log('item per page', itemPerPage);
+    console.log('current page', currentPage);
+    console.log('keyword', keyword);
+    try {
+      const [notes, total] = await this.noteRepository.findAndCount({
+        where: { title: Like(`%${keyword}%`) },
+        take: itemPerPage,
+        skip: (currentPage - 1) * itemPerPage,
+      });
+      return { currentPage, itemPerPage, total, notes };
+    } catch (error) {
+      this.handlerException(error);
+    }
   }
 
   async findOne(id: number) {

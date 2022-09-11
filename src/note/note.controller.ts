@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { NoteService } from './note.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('note')
 export class NoteController {
@@ -21,8 +23,8 @@ export class NoteController {
   }
 
   @Get()
-  findAll() {
-    return this.noteService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.noteService.findAll(paginationDto);
   }
 
   @Get(':id')
