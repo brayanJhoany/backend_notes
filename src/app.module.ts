@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common/common.module';
 import { NoteModule } from './note/note.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,10 +18,11 @@ import { NoteModule } from './note/note.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       autoLoadEntities: true,
-      synchronize: true, //process.env.ENV === 'development' ? true : false,
+      synchronize: process.env.ENV === 'development' ? true : false,
     }),
     NoteModule,
     CommonModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
