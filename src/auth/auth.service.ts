@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { loginUserDto } from './dto/login-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
@@ -39,7 +39,7 @@ export class AuthService {
       this.handlerException(error);
     }
   }
-  async login(loginUserDto: loginUserDto) {
+  async login(loginUserDto: LoginUserDto) {
     try {
       const { email, password } = loginUserDto;
       const user = await this.userRepository.findOne({

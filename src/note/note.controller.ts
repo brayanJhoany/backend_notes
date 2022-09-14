@@ -7,13 +7,16 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { NoteService } from './note.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('note')
+@UseGuards(AuthGuard('jwt'))
 export class NoteController {
   constructor(private readonly noteService: NoteService) {}
 
