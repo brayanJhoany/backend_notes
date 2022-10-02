@@ -1,0 +1,86 @@
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from './dto/login-user.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { log } from 'console';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async register(createUserDto: CreateUserDto) {
+    try {
+      const { password, ...userData } = createUserDto;
+      const hash = await this.encryptPassword(password);
+      const user = this.userRepository.create({
+        ...userData,
+        password: hash,
+      });
+
+      await this.userRepository.save(user);
+      const userResponse = this.transform(user);
+      const token = await this.getJwt({ id: user.id });
+      return {
+        ...userResponse,
+        token,
+      };
+    } catch (error) {
+      console.log('error', error);
+      this.handlerException(error);
+    }
+  }
+  async login(loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto;
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new BadRequestException('Invalid credentials');
+    }
+    if (!this.isValidPassword(password, user.password)) {
+      throw new BadRequestException('Invalid password');
+    }
+    const userResponse = this.transform(user);
+    const token = await this.getJwt({ id: user.id });
+    return {
+      ...userResponse,
+      token,
+    };
+  }
+  async isValidPassword(password: string, hash: string) {
+    return await bcrypt.compareSync(password, hash);
+  }
+
+  private transform(user: User) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+  async getJwt(jwtPayload: JwtPayload) {
+    return await this.jwtService.sign(jwtPayload);
+  }
+  private async encryptPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, bcrypt.genSaltSync(10));
+  }
+  private handlerException(error: any) {
+    if (error.code === 11000) {
+      throw new BadRequestException('User already exists');
+    }
+    throw new InternalServerErrorException('Internal server error');
+  }
+}
