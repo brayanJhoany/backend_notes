@@ -87,16 +87,13 @@ export class NoteService {
   }
 
   async remove(id: number, user: User) {
-    console.log({ id, user });
-
     //check id note exist and belong to user
     const note = await this.noteRepository.findOneBy({ id: id, user: user });
     if (!note) {
       throw new BadRequestException('Note not found');
     }
-    console.log({ note });
-
-    return this.noteRepository.delete(id);
+    await this.noteRepository.delete(id);
+    return { message: 'Note deleted successfully', note };
   }
   private handlerException(error: any) {
     if (error.code === 11000) {

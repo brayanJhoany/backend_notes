@@ -3,7 +3,7 @@ import { AuthServiceMock } from './helpers/auth-service-mock';
 import { AuthController } from '../auth.controller';
 import { AuthService } from '../auth.service';
 
-describe('BrayanController', () => {
+describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
 
