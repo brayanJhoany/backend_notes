@@ -25,13 +25,16 @@ export class NoteService {
       await this.noteRepository.save(note);
       return note;
     } catch (error) {
+      console.log(error);
       this.handlerException(error);
     }
   }
 
   async findAll(PaginationDto: PaginationDto, user: User) {
     const { itemPerPage, currentPage, keyword } = PaginationDto;
-
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
     try {
       if (keyword) {
         const [notes, total] = await this.noteRepository.findAndCount({
@@ -67,7 +70,7 @@ export class NoteService {
         },
         select: ['id', 'title', 'content'],
       });
-      return note;
+      return note[0] ?? null;
     } catch (error) {
       this.handlerException(error);
     }
@@ -77,7 +80,7 @@ export class NoteService {
     try {
       const note = await this.noteRepository.findOneBy({ id: id, user: user });
       if (!note) {
-        throw new BadRequestException('Note not found');
+        throw new BadRequestException(`Note with id ${id} not found`);
       }
       const updateNote = Object.assign(note, updateNoteDto);
       return await this.noteRepository.save(updateNote);
@@ -99,6 +102,7 @@ export class NoteService {
     if (error.code === 11000) {
       throw new BadRequestException('Note already exists');
     }
+    console.log(error);
     throw new InternalServerErrorException('Internal server error');
   }
 }

@@ -1,24 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../src/auth/entities/user.entity';
-import { Connection, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import * as request from 'supertest';
+import * as bcrypt from 'bcrypt';
 
-describe('AppController (e2e)', () => {
+describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let userRepository: Repository<User>;
   let server: any;
-
-  const user = {
+  let userDB: User;
+  const userParams = {
     name: 'userTest',
-    email: 'newemail@gmail.com',
+    email: 'test.note@gmail.com',
     password: 'passwordPrueba',
-    isActive: true,
-    notes: [],
   };
-
+  //para cada prueba se ejecuta el before each
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -27,38 +26,51 @@ describe('AppController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
     await app.init();
+
     server = app.getHttpServer();
     userRepository = moduleFixture.get<Repository<User>>(
       getRepositoryToken(User),
     );
+    //eliminamos los usuarios de la base de datos
     await userRepository.query(`DELETE FROM users;`);
-    await userRepository.save(user);
+    //creamos un nuevo usuario
+    const hash = await bcrypt.hash(userParams.password, bcrypt.genSaltSync(10));
+    const user = userRepository.create({
+      name: userParams.name,
+      email: userParams.email,
+      password: hash,
+    });
+    userDB = await userRepository.save(user);
   });
   afterAll(async () => {
-    console.log('cerrando la app');
-    if (process.env.NODE_ENV === 'test') {
-      await userRepository.query(`DELETE FROM users;`);
-    }
-    await app.close();
+    await userRepository.query(`DELETE FROM users;`);
     await server.close();
+    await app.close();
   });
 
   it('/api/auth/register (POST)', async () => {
     const response = await request(server)
       .post('/api/auth/register')
       .send({
-        name: 'Brayan Escobar',
-        email: 'test@test.com',
+        name: 'new user',
+        email: 'register@gmail.com',
         password: '123456789',
       })
       .expect(201);
     return response;
   });
   it('/api/auth/login (POST)', async () => {
-    const response = await request(server)
-      .post('/api/auth/login')
-      .send({ email: user.email, password: user.password })
-      .expect(201);
+    const params = {
+      email: userParams.email,
+      password: userParams.password,
+    };
+    const response = await request(server).post('/api/auth/login').send(params);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('id');
+    expect(response.body).toHaveProperty('name');
+    expect(response.body).toHaveProperty('email');
+    expect(response.body).toHaveProperty('token');
     return response;
   });
 });
