@@ -22,13 +22,12 @@ describe('AuthService', () => {
     isActive: true,
     notes: [],
   };
-  let token: 'token';
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         JwtModule.register({
-          secret: 'KLSDJF30945DJFDSK9345KJDFLKSD90485DSJFLKSDFJ349JFK',
+          secret: process.env.JWT_SECRET,
           signOptions: { expiresIn: '1d' },
         }),
       ],
@@ -49,64 +48,89 @@ describe('AuthService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  it('should register a new user', async () => {
-    const userDto: CreateUserDto = {
-      email: userMock.email,
-      password: userMock.password,
-      name: userMock.name,
-    };
-    jest
-      .spyOn(bcrypt, 'hash')
-      .mockImplementation(() => Promise.resolve('hashPassword'));
-
-    jest
-      .spyOn(service, 'getJwt')
-      .mockImplementation(() => Promise.resolve('token'));
-
-    const result = await service.register(userDto);
-    expect(result).toEqual({
-      id: expect.any(Number),
-      email: userMock.email,
-      name: userMock.name,
-      token: 'token',
-    });
-    expect(bcrypt.hash).toHaveBeenCalled();
-    expect(service.getJwt).toHaveBeenCalled();
-  });
-  it('should login a user', async () => {
-    const loginDto: LoginUserDto = {
-      email: userMock.email,
-      password: userMock.password,
-    };
-
-    jest
-      .spyOn(service, 'getJwt')
-      .mockImplementation(() => Promise.resolve('token'));
-
-    const result = await service.login(loginDto);
-    expect(result).toEqual({
-      id: expect.any(Number),
-      name: userMock.name,
-      email: userMock.email,
-      token: 'token',
-    });
-    expect(service.getJwt).toHaveBeenCalled();
-  });
-  it('should throw an error if the user does not exist', async () => {
-    const loginDto: LoginUserDto = {
-      email: 'error.email@gmail.com',
-      password: userMock.password,
-    };
-    try {
+  describe('Register', () => {
+    it('should register a new user', async () => {
+      const userDto: CreateUserDto = {
+        email: userMock.email,
+        password: userMock.password,
+        name: userMock.name,
+      };
       jest
-        .spyOn(UserRepositoryMock, 'findOne')
-        .mockImplementation(() => Promise.resolve(null) as any);
+        .spyOn(bcrypt, 'hash')
+        .mockImplementation(() => Promise.resolve('hashPassword'));
+
+      jest
+        .spyOn(service, 'getJwt')
+        .mockImplementation(() => Promise.resolve('token'));
+
+      const result = await service.register(userDto);
+      expect(result).toEqual({
+        id: expect.any(Number),
+        email: userMock.email,
+        name: userMock.name,
+        token: 'token',
+      });
+      expect(bcrypt.hash).toHaveBeenCalled();
+      expect(service.getJwt).toHaveBeenCalled();
+    });
+    it('should throw an error if user already exists', async () => {
+      const userDto: CreateUserDto = {
+        email: userMock.email,
+        password: userMock.password,
+        name: userMock.name,
+      };
+      jest
+        .spyOn(UserRepositoryMock, 'count')
+        .mockImplementation(() => Promise.resolve(1) as any);
+      jest
+        .spyOn(service, 'existUserByEmail')
+        .mockImplementation(() => Promise.resolve(true) as any);
+
+      try {
+        await service.register(userDto);
+      } catch (err) {
+        expect(err.message).toEqual(
+          `User with email ${userMock.email} already exists`,
+        );
+      }
+    });
+  });
+  describe('Login', () => {
+    it('should login a user', async () => {
+      const loginDto: LoginUserDto = {
+        email: userMock.email,
+        password: userMock.password,
+      };
+
+      jest
+        .spyOn(service, 'getJwt')
+        .mockImplementation(() => Promise.resolve('token'));
 
       const result = await service.login(loginDto);
-      console.log(result);
-    } catch (error) {
-      expect(error.message).toBe('Invalid credentials');
-      expect(UserRepositoryMock.findOne).toHaveBeenCalled();
-    }
+      expect(result).toEqual({
+        id: expect.any(Number),
+        name: userMock.name,
+        email: userMock.email,
+        token: 'token',
+      });
+      expect(service.getJwt).toHaveBeenCalled();
+    });
+    it('should throw an error if the user does not exist', async () => {
+      const loginDto: LoginUserDto = {
+        email: 'error.email@gmail.com',
+        password: userMock.password,
+      };
+      try {
+        jest
+          .spyOn(UserRepositoryMock, 'findOne')
+          .mockImplementation(() => Promise.resolve(null) as any);
+
+        const result = await service.login(loginDto);
+        console.log(result);
+      } catch (error) {
+        expect(error.message).toBe('Invalid credentials');
+        expect(UserRepositoryMock.findOne).toHaveBeenCalled();
+      }
+    });
   });
 });

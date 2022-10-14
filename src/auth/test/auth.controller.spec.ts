@@ -7,6 +7,9 @@ describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
 
+  /**
+   * this block is executed before each test
+   */
   beforeEach(async () => {
     const authServiceProvider = {
       provide: AuthService,
@@ -31,7 +34,7 @@ describe('AuthController', () => {
 
   it('should register a user', async () => {
     const registerUserDto = {
-      name: 'Brayan Escobar',
+      name: 'test_name',
       email: 'test@test.com',
       password: '123456789',
     };
@@ -39,6 +42,7 @@ describe('AuthController', () => {
       id: expect.any(Number),
       name: registerUserDto.name,
       email: registerUserDto.email,
+      token: expect.any(String),
     });
     const registerSpy = jest.spyOn(service, 'register');
     controller.register(registerUserDto);

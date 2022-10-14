@@ -21,7 +21,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto): Promise<any> {
+    //check if user exists
+    const existUser = await this.existUserByEmail(createUserDto.email);
+    if (existUser) {
+      throw new BadRequestException(
+        `User with email ${createUserDto.email} already exists`,
+      );
+    }
     try {
       const { password, ...userData } = createUserDto;
       const hash = await this.encryptPassword(password);
@@ -72,6 +79,10 @@ export class AuthService {
   }
   async getJwt(jwtPayload: JwtPayload) {
     return await this.jwtService.sign(jwtPayload);
+  }
+  async existUserByEmail(email: string): Promise<boolean> {
+    const countUser = await this.userRepository.count({ where: { email } });
+    return countUser > 0;
   }
   private async encryptPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, bcrypt.genSaltSync(10));
