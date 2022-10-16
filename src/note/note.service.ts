@@ -70,6 +70,7 @@ export class NoteService {
         },
         select: ['id', 'title', 'content'],
       });
+
       return note[0] ?? null;
     } catch (error) {
       this.handlerException(error);
@@ -85,6 +86,7 @@ export class NoteService {
       const updateNote = Object.assign(note, updateNoteDto);
       return await this.noteRepository.save(updateNote);
     } catch (error) {
+      console.log(error);
       this.handlerException(error);
     }
   }
