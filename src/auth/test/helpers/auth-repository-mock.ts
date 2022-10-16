@@ -20,4 +20,7 @@ export class AuthRepositoryMock {
   findOne(email: any): Promise<User> {
     return Promise.resolve(this.mockUser);
   }
+  count(email: any): Promise<number> {
+    return Promise.resolve(0);
+  }
 }
