@@ -22,8 +22,8 @@ export class NoteService {
     try {
       const note = this.noteRepository.create(createNoteDto);
       note.user = user;
-      await this.noteRepository.save(note);
-      return note;
+      await this.noteRepository.save(note, { reload: true });
+      return this.transformData(note);
     } catch (error) {
       console.log(error);
       this.handlerException(error);
@@ -100,6 +100,14 @@ export class NoteService {
     await this.noteRepository.delete(id);
     return { message: 'Note deleted successfully', note };
   }
+  private transformData(note: Note) {
+    return {
+      id: note.id,
+      title: note.title,
+      content: note.content,
+    };
+  }
+
   private handlerException(error: any) {
     if (error.code === 11000) {
       throw new BadRequestException('Note already exists');

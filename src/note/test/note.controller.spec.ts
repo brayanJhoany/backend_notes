@@ -5,11 +5,9 @@ import { CreateNoteDto } from '../dto/create-note.dto';
 import { NoteController } from '../note.controller';
 import { NoteService } from '../note.service';
 import { NoteServiceMock } from './helpers/note-service-mock';
-import { toArray } from 'rxjs';
 
 describe('noteController', () => {
   let controller: NoteController;
-  let service: NoteService;
   const userMock: User = {
     id: 1,
     email: 'success@gmail.com',
@@ -20,11 +18,6 @@ describe('noteController', () => {
   };
 
   beforeEach(async () => {
-    const noteServiceProvider = {
-      provide: NoteService,
-      useClass: NoteServiceMock,
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NoteController],
       providers: [NoteService],
@@ -34,7 +27,6 @@ describe('noteController', () => {
       .compile();
 
     controller = module.get<NoteController>(NoteController);
-    service = module.get<NoteService>(NoteService);
   });
 
   it('should be defined', () => {
@@ -50,7 +42,6 @@ describe('noteController', () => {
       id: expect.any(Number),
       title: noteDto.title,
       content: noteDto.content,
-      user: userMock,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date),
     });
@@ -68,7 +59,6 @@ describe('noteController', () => {
           id: expect.any(Number),
           title: 'Test note',
           content: 'Test note description',
-          user: userMock,
           createdAt: expect.any(Date),
           updatedAt: expect.any(Date),
         },
@@ -84,7 +74,6 @@ describe('noteController', () => {
       id: expect.any(Number),
       title: 'Test note',
       content: 'Test note description',
-      user: userMock,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date),
     });
@@ -99,7 +88,6 @@ describe('noteController', () => {
       id: expect.any(Number),
       title: noteDto.title,
       content: noteDto.content,
-      user: userMock,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date),
     });
@@ -108,14 +96,6 @@ describe('noteController', () => {
     const result = await controller.remove('1', userMock);
     expect(result).toEqual({
       message: 'Note deleted successfully',
-      note: {
-        id: expect.any(Number),
-        title: 'Test note',
-        content: 'Test note description',
-        user: userMock,
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-      },
     });
   });
 });

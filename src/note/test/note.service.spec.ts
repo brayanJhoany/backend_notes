@@ -1,8 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Repository } from 'typeorm';
 import { Note } from '../entities/note.entity';
 import { NoteService } from '../note.service';
-import { NoteServiceMock } from './helpers/note-service-mock';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { CreateNoteDto } from '../dto/create-note.dto';
@@ -10,7 +8,6 @@ import { NoteRepositoryMock } from './helpers/note.repository.mock';
 
 describe('noteService', () => {
   let service: NoteService;
-  let noteRepositoryMock: Repository<Note>;
   const userMock: User = {
     id: 1,
     email: 'success@gmail.com',
@@ -19,8 +16,6 @@ describe('noteService', () => {
     isActive: true,
     notes: [],
   };
-  // const note: Note;
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -33,7 +28,6 @@ describe('noteService', () => {
     }).compile();
 
     service = module.get<NoteService>(NoteService);
-    noteRepositoryMock = module.get<Repository<Note>>(getRepositoryToken(Note));
   });
 
   it('should be defined', () => {
@@ -46,11 +40,11 @@ describe('noteService', () => {
       content: 'test_content',
     };
     const result = await service.create(note, userMock);
+    console.log(result);
     expect(result).toEqual({
       id: expect.any(Number),
       title: note.title,
       content: note.content,
-      user: userMock,
     });
   });
   it('should return all notes', async () => {
@@ -72,8 +66,6 @@ describe('noteService', () => {
       title: 'note_title',
       content: 'note_content',
       user: userMock,
-      createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
     });
   });
   it('should update a note', async () => {
@@ -87,8 +79,6 @@ describe('noteService', () => {
       title: note.title,
       content: note.content,
       user: userMock,
-      createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
     });
   });
   it('should delete a note', async () => {
@@ -100,8 +90,6 @@ describe('noteService', () => {
         title: 'note_title',
         content: 'note_content',
         user: userMock,
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
       },
     });
   });
