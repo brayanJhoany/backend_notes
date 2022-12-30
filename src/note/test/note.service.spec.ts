@@ -5,9 +5,19 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { CreateNoteDto } from '../dto/create-note.dto';
 import { NoteRepositoryMock } from './helpers/note.repository.mock';
+import { NoteTransformer } from '../serialization/note.transformer';
+import { Repository } from 'typeorm';
+import { NoteTransformerMock } from './helpers/note-transform-mock';
 
-describe('noteService', () => {
+const mockNoteTransformer = () => ({
+  transformNote: jest.fn(),
+});
+
+describe('NoteService', () => {
   let service: NoteService;
+  let repository: Repository<Note>;
+  // let noteTransformer: NoteTransformer;
+
   const userMock: User = {
     id: 1,
     email: 'success@gmail.com',
@@ -20,14 +30,22 @@ describe('noteService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NoteService,
+        // NoteTransformer,
         {
           provide: getRepositoryToken(Note),
           useClass: NoteRepositoryMock,
+        },
+        {
+          provide: NoteTransformer,
+          useClass: NoteTransformerMock,
         },
       ],
     }).compile();
 
     service = module.get<NoteService>(NoteService);
+    repository = module.get<Repository<Note>>(getRepositoryToken(Note));
+
+    // noteTransformer = module.get<NoteTransformer>(NoteTransformer);
   });
 
   it('should be defined', () => {
@@ -40,11 +58,13 @@ describe('noteService', () => {
       content: 'test_content',
     };
     const result = await service.create(note, userMock);
-    console.log(result);
+    const date = new Date().toLocaleString();
     expect(result).toEqual({
       id: expect.any(Number),
       title: note.title,
       content: note.content,
+      created_at: date,
+      updated_at: date,
     });
   });
   it('should return all notes', async () => {
@@ -60,15 +80,17 @@ describe('noteService', () => {
     });
   });
   it('should return one note', async () => {
-    const result = await service.findOne(1, userMock);
+    const result = await service.show(1, userMock);
     expect(result).toEqual({
       id: expect.any(Number),
       title: 'note_title',
       content: 'note_content',
-      user: userMock,
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
     });
   });
   it('should update a note', async () => {
+    const date = new Date().toLocaleString();
     const note: CreateNoteDto = {
       title: 'test_title',
       content: 'test_content',
@@ -78,7 +100,8 @@ describe('noteService', () => {
       id: expect.any(Number),
       title: note.title,
       content: note.content,
-      user: userMock,
+      created_at: expect.any(String),
+      updated_at: date,
     });
   });
   it('should delete a note', async () => {
@@ -89,7 +112,8 @@ describe('noteService', () => {
         id: expect.any(Number),
         title: 'note_title',
         content: 'note_content',
-        user: userMock,
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
       },
     });
   });

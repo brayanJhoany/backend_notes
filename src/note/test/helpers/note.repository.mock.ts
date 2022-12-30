@@ -8,39 +8,47 @@ export class NoteRepositoryMock {
     title: 'note_title',
     content: 'note_content',
     user: new User(),
+    created_at: new Date(),
+    updated_at: new Date(),
   };
-  create(createNoteDto: CreateNoteDto, user: User) {
-    return {
+  async create(createNoteDto: CreateNoteDto, user: User) {
+    const note = {
       id: Math.random() * (1000 - 1) + 1,
       ...createNoteDto,
       user,
+      created_at: new Date(),
+      updated_at: new Date(),
     };
+    return note;
   }
-  save(note: Note): Promise<Note> {
+  async save(note: Note): Promise<Note> {
     return Promise.resolve(note);
   }
-  findAndCount(options: any) {
+  async findAndCount(options: any) {
     return Promise.resolve([[this.note], 1]);
   }
-  find(options: any) {
+  async findOne(options: any) {
     return Promise.resolve([
       {
         id: options.where.id,
         title: this.note.title,
         content: this.note.content,
         user: options.where.user,
+        created_at: this.note.created_at,
+        updated_at: this.note.updated_at,
       },
     ]);
   }
-  findOneBy(options: any) {
+  async findOneBy(options: any) {
     return Promise.resolve({
       id: options.id,
       title: this.note.title,
       content: this.note.content,
-      user: options.user,
+      created_at: this.note.created_at,
+      updated_at: this.note.updated_at,
     });
   }
-  delete(id: number) {
+  async delete(id: number) {
     return Promise.resolve({ id });
   }
 }

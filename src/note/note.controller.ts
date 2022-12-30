@@ -34,9 +34,8 @@ export class NoteController {
 
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser() user: User) {
-    return this.noteService.findOne(+id, user);
+    return this.noteService.show(+id, user);
   }
-
   @Patch(':id')
   update(
     @Param('id') id: string,

@@ -12,12 +12,13 @@ export class NoteServiceMock {
     updatedAt: new Date(),
   };
   async create(note: CreateNoteDto, user: User) {
-    return Promise.resolve({
+    const noteRespose = {
       id: Math.floor(Math.random() * 100),
       ...note,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    };
+    return Promise.resolve(noteRespose);
   }
   async findAll(paginator: PaginationDto, user: User) {
     const { itemPerPage, currentPage } = paginator;
@@ -28,7 +29,7 @@ export class NoteServiceMock {
       notes: [this.note],
     });
   }
-  async findOne(id: number, user: User) {
+  async show(id: number, user: User) {
     return Promise.resolve(this.note);
   }
   async update(id: number, note: CreateNoteDto, user: User) {
