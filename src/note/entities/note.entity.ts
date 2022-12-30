@@ -1,10 +1,17 @@
 import { User } from '../../auth/entities/user.entity';
+import { Transform } from 'class-transformer';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment-timezone');
+
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'notes' })
@@ -19,15 +26,16 @@ export class Note {
   content: string;
 
   @ManyToOne(() => User, (user) => user.notes, {
-    eager: true,
+    eager: false,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  // @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  // createdAt: Date;
+  @CreateDateColumn()
+  @Transform((date1) => moment(date1).format('YYYY-MM-DD HH:mm:ss'))
+  created_at: Date;
 
-  // @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  // updatedAt: Date;
+  @UpdateDateColumn()
+  updated_at: Date;
 }
