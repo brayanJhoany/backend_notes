@@ -11,7 +11,6 @@ import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +21,6 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<any> {
-    //check if user exists
     const existUser = await this.existUserByEmail(createUserDto.email);
     if (existUser) {
       throw new BadRequestException(
@@ -30,19 +28,18 @@ export class AuthService {
       );
     }
     try {
-      const { password, ...userData } = createUserDto;
-      const hash = await this.encryptPassword(password);
-      const user = this.userRepository.create({
-        ...userData,
-        password: hash,
-      });
-
-      await this.userRepository.save(user);
-      const userResponse = this.transform(user);
-      const token = await this.getJwt({ id: user.id });
+      const hash = await this.getHashByPassword(createUserDto.password);
+      const { email, name } = createUserDto;
+      const user = await this.userRepository.save(
+        this.userRepository.create({
+          email,
+          name,
+          password: hash,
+        }),
+      );
       return {
-        ...userResponse,
-        token,
+        ...this.transformData(user),
+        token: await this.getJwt({ id: user.id }),
       };
     } catch (error) {
       this.handlerException(error);
@@ -59,7 +56,7 @@ export class AuthService {
     if (!this.isValidPassword(password, user.password)) {
       throw new BadRequestException('Invalid password');
     }
-    const userResponse = this.transform(user);
+    const userResponse = this.transformData(user);
     const token = await this.getJwt({ id: user.id });
     return {
       ...userResponse,
@@ -70,7 +67,7 @@ export class AuthService {
     return await bcrypt.compareSync(password, hash);
   }
 
-  private transform(user: User) {
+  private transformData(user: User) {
     return {
       id: user.id,
       name: user.name,
@@ -84,7 +81,7 @@ export class AuthService {
     const countUser = await this.userRepository.count({ where: { email } });
     return countUser > 0;
   }
-  private async encryptPassword(password: string): Promise<string> {
+  private async getHashByPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, bcrypt.genSaltSync(10));
   }
   private handlerException(error: any) {

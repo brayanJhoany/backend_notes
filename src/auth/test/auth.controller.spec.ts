@@ -38,7 +38,8 @@ describe('AuthController', () => {
       email: 'test@test.com',
       password: '123456789',
     };
-    expect(await controller.register(registerUserDto)).toEqual({
+    const response = await controller.register(registerUserDto);
+    expect(response).toEqual({
       id: expect.any(Number),
       name: registerUserDto.name,
       email: registerUserDto.email,

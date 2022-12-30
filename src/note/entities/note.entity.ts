@@ -25,9 +25,9 @@ export class Note {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  // @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  // createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
+  // @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  // updatedAt: Date;
 }

@@ -4,36 +4,22 @@ import { CreateNoteDto } from 'src/note/dto/create-note.dto';
 import { Note } from 'src/note/entities/note.entity';
 
 export class NoteServiceMock {
-  note: Note = {
+  note = {
     id: 1,
     title: 'Test note',
     content: 'Test note description',
-    user: {
-      id: 1,
-      email: 'success@gmail.com',
-      password: 'password',
-      name: 'test_name',
-      isActive: true,
-      notes: [],
-    },
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  async create(note: CreateNoteDto, user: User): Promise<Note> {
-    return Promise.resolve(this.note);
+  async create(note: CreateNoteDto, user: User) {
+    return Promise.resolve({
+      id: Math.floor(Math.random() * 100),
+      ...note,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   }
-  async findAll(
-    paginator: PaginationDto,
-    user: User,
-  ): Promise<
-    | {
-        currentPage: number;
-        itemPerPage: number;
-        total: number;
-        notes: Note[];
-      }
-    | undefined
-  > {
+  async findAll(paginator: PaginationDto, user: User) {
     const { itemPerPage, currentPage } = paginator;
     return Promise.resolve({
       currentPage,
@@ -42,10 +28,10 @@ export class NoteServiceMock {
       notes: [this.note],
     });
   }
-  async findOne(id: number, user: User): Promise<Note> {
+  async findOne(id: number, user: User) {
     return Promise.resolve(this.note);
   }
-  async update(id: number, note: CreateNoteDto, user: User): Promise<Note> {
+  async update(id: number, note: CreateNoteDto, user: User) {
     this.note.title = note.title;
     this.note.content = note.content;
     return Promise.resolve(this.note);
@@ -53,7 +39,6 @@ export class NoteServiceMock {
   async remove(id: number, user: User): Promise<any> {
     const response = {
       message: 'Note deleted successfully',
-      note: this.note,
     };
     return Promise.resolve(response);
   }

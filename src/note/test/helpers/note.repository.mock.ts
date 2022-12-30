@@ -8,8 +8,6 @@ export class NoteRepositoryMock {
     title: 'note_title',
     content: 'note_content',
     user: new User(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
   create(createNoteDto: CreateNoteDto, user: User) {
     return {
@@ -31,8 +29,6 @@ export class NoteRepositoryMock {
         title: this.note.title,
         content: this.note.content,
         user: options.where.user,
-        createdAt: this.note.createdAt,
-        updatedAt: this.note.updatedAt,
       },
     ]);
   }
@@ -42,8 +38,6 @@ export class NoteRepositoryMock {
       title: this.note.title,
       content: this.note.content,
       user: options.user,
-      createdAt: this.note.createdAt,
-      updatedAt: this.note.updatedAt,
     });
   }
   delete(id: number) {
