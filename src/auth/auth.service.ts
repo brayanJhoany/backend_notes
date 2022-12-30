@@ -11,7 +11,6 @@ import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -29,19 +28,18 @@ export class AuthService {
       );
     }
     try {
-      const { password, ...userData } = createUserDto;
-      const hash = await this.getHashByPassword(password);
-      const user = this.userRepository.create({
-        ...userData,
-        password: hash,
-      });
-
-      await this.userRepository.save(user);
-      const userResponse = this.transformData(user);
-      const token = await this.getJwt({ id: user.id });
+      const hash = await this.getHashByPassword(createUserDto.password);
+      const { email, name } = createUserDto;
+      const user = await this.userRepository.save(
+        this.userRepository.create({
+          email,
+          name,
+          password: hash,
+        }),
+      );
       return {
-        ...userResponse,
-        token,
+        ...this.transformData(user),
+        token: await this.getJwt({ id: user.id }),
       };
     } catch (error) {
       this.handlerException(error);
